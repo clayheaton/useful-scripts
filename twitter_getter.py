@@ -1,12 +1,24 @@
-import sys
 #################################################################
-########### YOU MUST CHANGE THESE VALUES TO MATCH YOUR ACCOUNT ##
+## YOU MUST CHANGE THESE VALUES TO MATCH YOUR TWITTER ACCOUNT ###
+########### Create an 'application' at dev.twitter.com ##########
+########### And then authenticate yourself to use it ############
+######... the keys you need are listed on the app's page ########
 #################################################################
 
 APP_KEY            =  'YOUR APP_KEY'           
 APP_SECRET         =  'YOUR APP_SECRET'        
 OAUTH_TOKEN        =  'YOUR OAUTH_TOKEN'       
 OAUTH_TOKEN_SECRET =  'YOUR OAUTH_TOKEN_SECRET'
+
+# - Make sure you copy the keys correctly, with no extra spaces
+# - and key them inside of quotes, as shown on the right above.
+
+############ NOW RUN THE SCRIPT FROM A COMMAND LINE #############
+
+
+
+
+
 
 #################################################################
 ######################### CHANGELOG #############################
@@ -15,11 +27,14 @@ OAUTH_TOKEN_SECRET =  'YOUR OAUTH_TOKEN_SECRET'
 # v.2
 # FIXED Bug: when selecting both output types, CSV isn't saved in the proper directory.
 
+# v.1
+# Streaming only. CSV header error.
 
 ################################################################
 ########### BE CAREFUL CHANGING STUFF AFTER HERE ###############
 ################################################################
 
+import sys
 
 def no_creds():
     print "\nPlease edit the script and enter your credentials before use."
