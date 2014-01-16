@@ -1,9 +1,27 @@
 ## useful-scripts
 ==============
 
+#### multi_process.py
+
+*v. 1 on 15 JAN 2014*
+
+*NOTE: This script was derived from a [StackOverflow.com question](http://stackoverflow.com/questions/18204782/runtimeerror-on-windows-trying-python-multiprocessing). I was not the original author, [NG Algo](http://stackoverflow.com/users/1293955/ng-algo) was.*
+
+I modified the script for a task where I needed to parse 11,000 text files, transform the records in them, and push them into a Mongo database.
+
+For my use case, I created a list of all of the files, and split the files between multiple processes (with one thread on each process). Each process loaded the files it was given, did the processing, and then bulk pushed cleaned data into MongoDB. 
+
+I removed my modifications and put the shell of the script here in this repository.
+
+If you run it as is, you will see that it launches 6 separate processes and 4 threads on each process. 
+
+The way to use it is to modify the classes and what you pass to them so that you can use all of your computer's CPU power to perform tasks in parallel. Your likely limitation is disk I/O. Therefore, after modifying the script, it's best to start testing with a low number of processes and 1 thread on each and then increment from there until you find the point of diminishing returns for your tasks.
+
+Once you make some minor modifications and track the flow of process and thread generation, you'll understand clearly where you need to inject your data and other code.
+
 #### twitter_getter.py
 
-v.2 on 11 JAN 2014
+*v.2 on 11 JAN 2014*
 
 This script connects to the free Twitter API and allows you to gather tweets through a persistent stream, through the search API, or from a specified user's profile.
 
