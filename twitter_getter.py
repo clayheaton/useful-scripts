@@ -114,6 +114,7 @@ use_json_files    = False
 search_terms      = ""
 keep_lang         = 'all'
 output_dir        = ""
+tweets_per_file   = 50000
 
 ################################################################
 ########### GATHERING USER INPUT VARIABLES #####################
