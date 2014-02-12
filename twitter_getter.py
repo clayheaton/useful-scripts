@@ -52,8 +52,8 @@ print " ||        |  `  / \  |                                           ||"
 print " ||        /     '.()--\                                          ||"
 print " ||       |         '._/                                          ||"
 print " ||      _| O   _   O |_    PYTHON TWITTER GETTER                 ||"
-print " ||      =\    '-'    /=    v.2                                   ||"
-print " ||        '-._____.-'      11 JAN 2014                           ||"
+print " ||      =\    '-'    /=    v.3                                   ||"
+print " ||        '-._____.-'      12 FEB 2014                           ||"
 print " ||        /`/\___/\`\                                            ||"
 print " ||       /\/o     o\/\                                           ||"
 print " ||      (_|         |_)                                          ||"
@@ -116,9 +116,15 @@ keep_lang         = 'all'
 output_dir        = ""
 tweets_per_file   = 50000
 
+tweet_buffer_csv  = []
+tweet_buffer_json = []
+flush_count       = 500
+
 ################################################################
 ########### GATHERING USER INPUT VARIABLES #####################
 ################################################################
+
+print "\n** This script will stop functioning if your computer goes to sleep **\n"
 
 print "\n"
 search_type = raw_input("Do you want to catch a Twitter stream (1) get a user timeline (2) or perform a search (3)? ")
@@ -415,11 +421,12 @@ class DasTweetMaker():
 
         tweets.close()
 
-    def process(self, tweet):
+    def process(self, tweet,flush=False):
         global first_header_done
         global header_done
         global file_name_suffix
         global counter
+        global tweet_buffer_csv
 
         if first_header_done is False or (header_done is False and include_header_in_each_file is True):
             self.create_header()
@@ -466,12 +473,27 @@ class DasTweetMaker():
         else:
             theOutput.append(tweet['geo'])
 
-        tweets = open(output_dir + filename_prefix + "csv_tweets_" + str(file_name_suffix) + ".csv", 'ab+')
-        wr     = csv.writer(tweets, dialect='excel')
-        wr.writerow(theOutput)
-        tweets.close()
+        newOutput = []
+        for item in theOutput:
+            if item is not None:
+                newOutput.append(str(item))
+            else:
+                newOutput.append('')
 
-# APSS parallelized
+        store = ",".join(newOutput)
+        tweet_buffer_csv.append(store)
+
+        if flush:
+            tweets = open(output_dir + filename_prefix + "csv_tweets_" + str(file_name_suffix) + ".csv", 'ab+')
+
+            for t_item in tweet_buffer_csv:
+                tweets.write(t_item)
+                tweets.write("\n")
+
+            tweets.close()
+            tweet_buffer_csv = []
+
+
 
 class TweetSaver():
     def __init__(self):
@@ -487,9 +509,21 @@ class TweetSaver():
         global counter
         global tweets_per_file
         global header_done
+        global tweet_buffer_json
+        global tweet_buffer_csv
+        global flush_count
+        global keep_tweets
 
         # Increment the counter
         counter += 1
+
+        flush = False
+
+        if (counter + 1) % tweets_per_file == 0 or counter % flush_count == 0:
+            flush = True
+
+        if counter == keep_tweets:
+            flush = True
 
         if counter % tweets_per_file == 0:
             # Increment the file name
@@ -499,17 +533,25 @@ class TweetSaver():
         if output_format in (2,3):
             if use_json_files:
                 # Keep the JSON files
-                g = open(output_dir + filename_prefix + "json_tweets_" + str(file_name_suffix) + ".json", "ab+")
-                json.dump(data,g)
-                g.write("\n")
-                g.close()
+                tweet_buffer_json.append(data)
+
+                # TODO: Push this onto another thread
+                if flush:
+                    g = open(output_dir + filename_prefix + "json_tweets_" + str(file_name_suffix) + ".json", "ab+")
+
+                    for item in tweet_buffer_json:
+                        json.dump(item,g)
+                        g.write("\n")
+
+                    g.close()
+                    tweet_buffer_json = []
             if use_mongo:
                 # Push the JSON into MongoDB
                 collection.insert(data)
 
         if output_format in (1,3):
             # Keep the CSV
-            self.writer.process(data)   
+            self.writer.process(data,flush)   
 
 
 
@@ -519,6 +561,7 @@ class MyStreamer(TwythonStreamer):
     def __init__(self, APP_KEY, APP_SECRET, OAUTH_TOKEN, OAUTH_TOKEN_SECRET):
         super( MyStreamer, self ).__init__(APP_KEY, APP_SECRET, OAUTH_TOKEN, OAUTH_TOKEN_SECRET)
         self.saver = TweetSaver()
+        self.lastlog = time.time()
 
     def on_success(self, data):
         global counter
@@ -535,14 +578,20 @@ class MyStreamer(TwythonStreamer):
         global client
         global start
 
-        if 'text' in data:
+        # Are stall_warnings handled by Twython by default?
+        if 'warning' in data:
+            print '\nTwitter Warning:',data['warning']['code'], data['warning']['message']
+
+        if 'text' in data and 'warning' not in data:
             if not 'lang' in data or (keep_lang == 'all' or data['lang'] in keep_lang):
 
                 end = time.time()
                 elapsed = end - start
-                if int(elapsed) % 60 == 0:
+                since   = end - self.lastlog
+                if int(elapsed) % 60 == 0 and since > 10:
                     rate = float(counter) / (elapsed/60)
                     print counter,"tweets at a rate of",int(rate),"per minute after",int(elapsed/60),"minutes."
+                    self.lastlog = time.time()
 
                 # The saver object handles the saving of the data
                 self.saver.handleTweet(data)
@@ -608,7 +657,7 @@ if search_type == 1:
     if search_terms == "sample":
         stream.statuses.sample()
     else:
-        stream.statuses.filter(track=search_terms)
+        stream.statuses.filter(track=search_terms,stall_warnings='true')
 
 
 

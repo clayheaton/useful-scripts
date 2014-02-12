@@ -21,6 +21,10 @@ Once you make some minor modifications and track the flow of process and thread 
 
 #### twitter_getter.py
 
+*v.3 on 12 FEB 2014*
+
+- Update to show warning from Twitter when you're not keeping up with the stream. Simple buffering of tweets between writes to files, in an attempt to improve performance.
+
 *v.2 on 11 JAN 2014*
 
 This script connects to the free Twitter API and allows you to gather tweets through a persistent stream, through the search API, or from a specified user's profile.
