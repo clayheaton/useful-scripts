@@ -1,6 +1,81 @@
 ## useful-scripts
 ==============
 
+#### MarketBasket/MarketBasket.py
+
+*v. 0.1 on 04 APR 2014*
+
+Dependencies: [NetworkX](http://networkx.github.io/) and [Pandas](http://pandas.pydata.org/).
+
+The results of analysis on this example dataset were validated against the results in SAS Enterprise Miner.
+
+This script/module provides a class called `MarketBasket` that performs simple market basket (association rule) analysis. The sample data file is called `bank.csv` and looks like the example below. Basically, you have a column for the transaction identifier and a column for the product purchased. The third column, `VISIT` in the example, is for sequence analysis, which is not yet implemented.
+
+```
+TRANSACTION,PRODUCT,VISIT
+500026,CKING,1
+500026,SVG,2
+500026,ATM,3
+500026,ATM,4
+500075,CKING,1
+500075,MMDA,2
+500075,SVG,3
+500075,ATM,4
+500075,TRUST,5
+500075,TRUST,6
+500129,CKING,1
+500129,SVG,2
+500129,IRA,3
+500129,ATM,4
+500129,ATM,5
+500256,CKING,1
+500256,SVG,2
+...
+```
+
+The basic usage is:
+
+* Import the Library
+```
+import MarketBasket as mb
+```
+* Create an object to work with
+```
+mba = mb.MarketBasket()
+```
+* Load your data from CSV
+```
+mba.load_csv_data("bank.csv")
+```
+*You also can assign the data to the object if you already loaded it elsewhere and have it in the proper format. In that case, use `load_data()`. See the code for more info.*
+
+* Build the association graph. The parameter here indicates the maximum number of products that can be on each side of the rule. `A & B => C`, for instance, has 2 products on the left hand side. Performance will degrade if you go above 3, most likely.
+```
+myGraph = mba.build_association_graph(2)
+```
+
+* Get the association association rules as a Pandas DataFrame
+```
+myRules = mba.associationRules()
+```
+
+* You then can work with the rules as you would with any other Pandas dataset...
+```
+myRules.head()
+```
+
+Output will look like:
+![mba](pics/mba.png)
+
+If you want to see only the rules that have a particular LHS to them, for example, you can do something like this:
+```
+myRules2 = myRules[(myRules['LHS'] == 'IRA')]
+myRules2.head()
+```
+![mba](pics/mba2.png)
+
+----
+
 #### multi_process.py
 
 *v. 1 on 15 JAN 2014*
@@ -18,6 +93,8 @@ If you run it as is, you will see that it launches 6 separate processes and 4 th
 The way to use it is to modify the classes and what you pass to them so that you can use all of your computer's CPU power to perform tasks in parallel. Your likely limitation is disk I/O. Therefore, after modifying the script, it's best to start testing with a low number of processes and 1 thread on each and then increment from there until you find the point of diminishing returns for your tasks.
 
 Once you make some minor modifications and track the flow of process and thread generation, you'll understand clearly where you need to inject your data and other code.
+
+----
 
 #### twitter_getter.py
 
