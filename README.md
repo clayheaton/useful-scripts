@@ -65,14 +65,14 @@ myRules.head()
 ```
 
 Output will look like:
-![mba](pics/mba.png)
+![mba](/pics/mba.png)
 
 If you want to see only the rules that have a particular LHS to them, for example, you can do something like this:
 ```
 myRules2 = myRules[(myRules['LHS'] == 'IRA')]
 myRules2.head()
 ```
-![mba](pics/mba2.png)
+![mba](/pics/mba2.png)
 
 ----
 
